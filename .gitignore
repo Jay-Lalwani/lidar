@@ -1,9 +1,15 @@
-envs/*
-OpenPCDet/data/*
-OpenPCDet/output/*
-logs/*
-.DS_Store
-.idea/*
-.vscode/*
-**/__pycache__/*
-*.so
+# Conda environment
+envs/
+
+# Logs
+logs/
+
+# OpenPCDet (cloned separately, not tracked in our repo)
+OpenPCDet/
+
+# Backups
+_backup/
+
+# Python
+__pycache__/
+*.pyc

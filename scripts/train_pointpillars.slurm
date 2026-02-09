@@ -1,76 +1,81 @@
 #!/bin/bash
+# ===========================================================================
+#  SLURM job script for PointPillars training on IAC racecar detection data.
 #
-# SLURM job script for training PointPillars on IAC racecar detection data.
+#  First run:   sbatch scripts/train_pointpillars.slurm
+#  Resume:      sbatch --export=RESUME=1 scripts/train_pointpillars.slurm
 #
-# Usage:
-#   sbatch train_pointpillars.slurm
-#
-# Prerequisites:
-#   1. Run setup_env.sh on a GPU node to create the 'openpcdet' conda env
-#   2. Run preprocess_kitti.py to prepare the dataset
-#
+#  Prerequisites:
+#    1. Run setup_env.sh to create the conda env + build OpenPCDet
+#    2. Run preprocess_kitti.py to prepare the dataset
+#    3. Data infos (pkl files) must exist — see SETUP.md step 5
+# ===========================================================================
 #SBATCH -p gpu
-#SBATCH --gres=gpu:1
-#SBATCH -c 4
+#SBATCH --gres=gpu:a100:1
+#SBATCH -c 6
 #SBATCH --mem=64G
-#SBATCH -t 24:00:00
+#SBATCH -t 12:00:00
 #SBATCH -J pointpillars_train
 #SBATCH -o /p/cavalier/jay/logs/pp_train-%A.out
 #SBATCH -e /p/cavalier/jay/logs/pp_train-%A.err
 
 set -euo pipefail
 
+OPENPCDET_DIR=/p/cavalier/jay/OpenPCDet
+CKPT_DIR="${OPENPCDET_DIR}/output/kitti_models/pointpillar/default/ckpt"
+
+BATCH_SIZE=16
+EPOCHS=80
+WORKERS=6
+
 echo "============================================"
-echo "  PointPillars Training Job"
-echo "  Job ID:   ${SLURM_JOB_ID}"
-echo "  Node:     $(hostname)"
-echo "  GPUs:     ${CUDA_VISIBLE_DEVICES:-not set}"
-echo "  Started:  $(date)"
+echo "  PointPillars Training"
+echo "  Job:  ${SLURM_JOB_ID}  Node: $(hostname)"
+echo "  GPUs: ${CUDA_VISIBLE_DEVICES:-not set}"
+echo "  Time: $(date)"
 echo "============================================"
 
-# --- Environment setup ---
+# ── Environment ─────────────────────────────────────────────────────────────
 module purge
 module load miniforge/25.3.1-py3.12
 module load cuda/12.8.1
 conda activate /p/cavalier/jay/envs/openpcdet
 
-OPENPCDET_DIR=/p/cavalier/jay/OpenPCDet
+python -c "
+import torch
+gpu = torch.cuda.get_device_name(0)
+mem = torch.cuda.get_device_properties(0).total_memory / 1e9
+print(f'GPU: {gpu} ({mem:.0f} GB)')
+"
+
+# ── Generate data infos (first run only) ────────────────────────────────────
 cd "${OPENPCDET_DIR}"
-
-# Quick sanity check
-python -c "import torch; assert torch.cuda.is_available(), 'CUDA not available!'; print(f'GPU: {torch.cuda.get_device_name(0)}')"
-
-# --- Phase 1: Generate data infos + GT database (skip if already done) ---
 if [ ! -f data/kitti/kitti_infos_train.pkl ]; then
-    echo ""
-    echo ">>> Generating KITTI data infos and GT database..."
-    echo "    This may take a while on first run."
-    echo ""
+    echo ">>> Generating KITTI data infos + GT database..."
     python -m pcdet.datasets.kitti.kitti_dataset create_kitti_infos \
         tools/cfgs/dataset_configs/kitti_dataset.yaml
-    echo ">>> Data info generation complete."
+    echo ">>> Done."
 else
-    echo ">>> KITTI data infos already exist, skipping generation."
+    echo ">>> Data infos already exist, skipping."
 fi
 
-# --- Phase 2: Training ---
-# train.py resolves _BASE_CONFIG_ relative to CWD, so run from tools/
+# ── Resume logic ────────────────────────────────────────────────────────────
+RESUME_ARGS=""
+if [ "${RESUME:-0}" = "1" ] && [ -f "${CKPT_DIR}/latest_model.pth" ]; then
+    echo ">>> Resuming from ${CKPT_DIR}/latest_model.pth"
+    RESUME_ARGS="--ckpt ${CKPT_DIR}/latest_model.pth"
+fi
+
+# ── Train ───────────────────────────────────────────────────────────────────
+# train.py resolves _BASE_CONFIG_ paths relative to CWD — must be tools/
 cd "${OPENPCDET_DIR}/tools"
 
-echo ""
-echo ">>> Starting PointPillars training..."
-echo "    Config: cfgs/kitti_models/pointpillar.yaml"
-echo "    Batch size: 4"
-echo "    Epochs: 80"
-echo ""
-
+echo ">>> Training: batch=${BATCH_SIZE}  epochs=${EPOCHS}  workers=${WORKERS}"
 python -u train.py \
     --cfg_file cfgs/kitti_models/pointpillar.yaml \
-    --batch_size 4 \
-    --epochs 80
+    --batch_size ${BATCH_SIZE} \
+    --epochs ${EPOCHS} \
+    --workers ${WORKERS} \
+    ${RESUME_ARGS}
 
-echo ""
-echo "============================================"
-echo "  Training complete!"
-echo "  Finished: $(date)"
-echo "============================================"
+echo ">>> Training complete at $(date)"
