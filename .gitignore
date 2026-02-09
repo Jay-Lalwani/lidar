@@ -1,0 +1,9 @@
+envs/*
+OpenPCDet/data/*
+OpenPCDet/output/*
+logs/*
+.DS_Store
+.idea/*
+.vscode/*
+**/__pycache__/*
+*.so
