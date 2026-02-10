@@ -40,21 +40,7 @@ git clone https://github.com/open-mmlab/OpenPCDet.git
 
 Then apply the required patch and copy in configs:
 
-**Patch the Argo2 import** (upstream has an unconditional import of the `av2`
-library which we don't need — wrap it in a try/except):
 
-Edit `OpenPCDet/pcdet/datasets/__init__.py`, change:
-```python
-from .argo2.argo2_dataset import Argo2Dataset
-```
-to:
-```python
-try:
-    from .argo2.argo2_dataset import Argo2Dataset
-except ImportError:
-    Argo2Dataset = None
-```
-and update the `__all__` dict to conditionally include `Argo2Dataset`.
 
 **Patch `torch.load` for PyTorch 2.6+** (default changed to `weights_only=True`,
 which rejects checkpoints saved with older PyTorch):
@@ -283,5 +269,5 @@ python test.py \
 | `Floating point exception` in cumm | spconv/cumm CUDA version mismatch | Use `spconv-cu124` (not cu120) |
 | `FileNotFoundError: kitti_dataset.yaml` | Wrong CWD for train.py | Must `cd tools/` before running `train.py` |
 | `Permission denied` (conda) | System cache read-only | Set `CONDA_PKGS_DIRS` to writable dir |
-| `ModuleNotFoundError: av2` | Argo2 import not guarded | Patch `pcdet/datasets/__init__.py` (see Step 0) |
+| `ModuleNotFoundError: av2` | Argo2 library missing | `pip install av2` (should be in setup script) |
 | `UnpicklingError: Weights only load failed` | PyTorch 2.6+ `weights_only` default | Add `weights_only=False` to `torch.load()` in `detector3d_template.py` |

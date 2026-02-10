@@ -58,7 +58,7 @@ fi
 # ── 5. Install remaining Python dependencies ────────────────────────────────
 echo "Installing OpenPCDet Python dependencies..."
 pip install gpustat ninja numpy scipy easydict pyyaml scikit-image tqdm tensorboardX \
-    numba SharedArray opencv-python pyquaternion mcap mcap-ros2-support av
+    numba SharedArray opencv-python pyquaternion mcap mcap-ros2-support av av2
 
 # ── 6. Build OpenPCDet (CUDA extensions) ────────────────────────────────────
 echo "Building OpenPCDet..."
