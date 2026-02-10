@@ -13,3 +13,6 @@ _backup/
 # Python
 __pycache__/
 *.pyc
+
+# Sandbox
+sandbox/
