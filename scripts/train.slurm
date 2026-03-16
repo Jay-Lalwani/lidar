@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -l
 # ===========================================================================
 #  SLURM job script for PointPillars Model Training & Data Generation.
 #
@@ -16,6 +16,7 @@
 #SBATCH -J pp_train
 #SBATCH -o /p/cavalier/jay/logs/train-%A.out
 #SBATCH -e /p/cavalier/jay/logs/train-%A.err
+#SBATCH --export=NONE
 
 set -euo pipefail
 
