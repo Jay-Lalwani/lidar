@@ -5,7 +5,7 @@
 #  Usage: sbatch scripts/evaluate_3d.slurm
 # ===========================================================================
 #SBATCH -p gpu
-#SBATCH --gres=gpu:a100:1
+#SBATCH --gres=gpu:1
 #SBATCH -c 1
 #SBATCH --mem=16G
 #SBATCH -t 02:00:00
@@ -39,14 +39,6 @@ conda activate /p/cavalier/jay/envs/openpcdet
 
 # ── Create log directory ────────────────────────────────────────────────────
 mkdir -p /p/cavalier/jay/logs/eval_3d
-
-# ── Rebuild CUDA extensions for current GPU if needed ───────────────────────
-# The CUDA extensions (iou3d_nms, etc.) may have been compiled for a different
-# GPU architecture (e.g. A100). Rebuild them for the current GPU.
-echo ">>> Rebuilding CUDA extensions for $(nvidia-smi --query-gpu=name --format=csv,noheader | head -1)..."
-cd "${OPENPCDET_DIR}"
-python setup.py build_ext --inplace 2>&1 | tail -5
-echo ">>> CUDA extensions rebuilt."
 
 # ── Run evaluation ──────────────────────────────────────────────────────────
 cd "${OPENPCDET_DIR}/tools"
