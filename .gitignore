@@ -16,3 +16,7 @@ __pycache__/
 
 # Sandbox
 sandbox/
+
+# Nix
+.direnv
+
