@@ -2,7 +2,7 @@
 # ===========================================================================
 #  One-time environment setup for OpenPCDet PointPillars training on UVA HPC.
 #
-#  Usage: sbatch scripts/setup_env.sh
+#  Usage: sbatch scripts/setup_env.slurm
 # ===========================================================================
 #SBATCH -p gpu
 #SBATCH --gres=gpu:1
