@@ -9,7 +9,7 @@
 #    VAL_RATIO=0.2 sbatch scripts/train.slurm
 # ===========================================================================
 #SBATCH -p gpu
-#SBATCH --gres=gpu:a100:1
+#SBATCH --gres=gpu:1
 #SBATCH -c 6
 #SBATCH --mem=64G
 #SBATCH -t 12:00:00

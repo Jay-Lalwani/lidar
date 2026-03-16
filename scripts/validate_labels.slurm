@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -l
 # ===========================================================================
 #  SLURM job script for PointPillars label validation/visualization.
 #
@@ -8,13 +8,14 @@
 #  of the dataset labels (and optional model predictions).
 # ===========================================================================
 #SBATCH -p gpu
-#SBATCH --gres=gpu:a100:1
+#SBATCH --gres=gpu:1
 #SBATCH -c 6
 #SBATCH --mem=64G
 #SBATCH -t 01:00:00
 #SBATCH -J pp_validate
 #SBATCH -o /p/cavalier/jay/logs/validate-%A.out
 #SBATCH -e /p/cavalier/jay/logs/validate-%A.err
+#SBATCH --export=NONE
 
 set -euo pipefail
 
