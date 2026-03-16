@@ -27,9 +27,7 @@ Run the setup script **ONE TIME** on a GPU node to construct the `openpcdet` con
 
 ```bash
 mkdir -p /p/cavalier/jay/logs
-sbatch -p gpu --gres=gpu:a100:1 -c 4 --mem=32G -t 01:00:00 \
-       -o /p/cavalier/jay/logs/setup-%A.out -e /p/cavalier/jay/logs/setup-%A.err \
-       scripts/setup_env.sh
+sbatch scripts/setup_env.slurm
 ```
 
 ## Step 2: Training (and Data Export)
@@ -50,15 +48,11 @@ If `REEXPORT_DATA=1`, intermediate frames without labels are ignored, and `val.t
 
 ## Step 3: Evaluation
 
-We implement mathematically rigorous evaluation explicitly isolated to the non-training subset frames. Specifically, by analyzing only `val.txt` ids and validating they were not evaluated on, we strictly guarantee no data leakage occurs.
-
 To run rigorous evaluations on a trained checkpoint:
 
 ```bash
-sbatch scripts/evaluate.slurm
+sbatch scripts/evaluate_3d.slurm
 ```
-
-Optionally, you can enable visual outputs (rendering bounding boxes over the 3D PointCloud) by setting `VISUALIZE=1` in the slurm script. The evaluation handles identical config setups dynamically.
 
 ## MCAP-to-KITTI Export Logic Reference
 
