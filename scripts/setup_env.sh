@@ -1,16 +1,19 @@
-#!/bin/bash
+#!/bin/bash -l
 # ===========================================================================
 #  One-time environment setup for OpenPCDet PointPillars training on UVA HPC.
 #
-#  Creates a conda env, installs PyTorch + spconv + OpenPCDet, and builds
-#  all CUDA extensions.  Must run on a GPU node (needs nvcc + GPU).
-#
-#  Usage:
-#    sbatch -p gpu --gres=gpu:a100:1 -c 4 --mem=32G -t 01:00:00 \
-#           -o /p/cavalier/jay/logs/setup-%A.out                  \
-#           -e /p/cavalier/jay/logs/setup-%A.err                  \
-#           scripts/setup_env.sh
+#  Usage: sbatch scripts/setup_env.sh
 # ===========================================================================
+#SBATCH -p gpu
+#SBATCH --gres=gpu:1
+#SBATCH -c 4
+#SBATCH --mem=32G
+#SBATCH -t 01:00:00
+#SBATCH -J env_setup
+#SBATCH -o /p/cavalier/jay/logs/setup-%A.out
+#SBATCH -e /p/cavalier/jay/logs/setup-%A.err
+#SBATCH --export=NONE         
+
 set -euo pipefail
 
 ENV_PREFIX=/p/cavalier/jay/envs/openpcdet
@@ -63,6 +66,9 @@ pip install gpustat ninja numpy scipy easydict pyyaml scikit-image tqdm tensorbo
 # ── 6. Build OpenPCDet (CUDA extensions) ────────────────────────────────────
 echo "Building OpenPCDet..."
 cd "${OPENPCDET_DIR}"
+
+# compile for multiple gpus
+export TORCH_CUDA_ARCH_LIST="7.0;7.5;8.0;8.6"
 pip install -e . --no-build-isolation
 
 # ── 7. Verify everything ────────────────────────────────────────────────────
